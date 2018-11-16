@@ -1,0 +1,15 @@
+language: ruby
+sudo: false
+cache: bundler
+rvm:
+  - 2.1.9
+  - 2.2.5
+  - 2.3.1
+script: bundle exec rspec
+deploy:
+  gemspec: authentic-rb.gemspec
+  on:
+    tags: true
+    repo: articulate/authentic-rb
+    branch: master
+
