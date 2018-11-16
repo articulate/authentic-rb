@@ -3,8 +3,13 @@ require 'bundler/gem_tasks'
 
 begin
   require 'rubocop/rake_task'
-
   require 'rspec/core/rake_task'
+
+  desc 'Build Documentation'
+  YARD::Rake::YardocTask.new(:documentation) do |t|
+    t.files = DOC_FILES
+    t.options = ['-p', 'doc_config/templates']
+  end
 
   desc 'Run Rubocop'
   RuboCop::RakeTask.new(:rubocop)

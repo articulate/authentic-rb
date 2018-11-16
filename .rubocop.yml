@@ -6,3 +6,8 @@ AllCops:
    - bin/**/*
    - vendor/**/*
    - auth0.gemspec
+Metrics/BlockLength:
+  Exclude:
+    - 'Rakefile'
+    - '**/*.rake'
+    - 'spec/**/*.rb'
