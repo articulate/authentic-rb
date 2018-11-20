@@ -16,9 +16,9 @@ bundle add authentic-rb
 
 ## Usage
 
-Instantiate `Authentic::Validator` with an options hash, which must contain an `issWhitelist` array listing the `token.payload.iss` values you will accept. For example:
+Instantiate `Authentic::Validator` with an options hash, which must contain an `iss_whitelist` array listing the `token.payload.iss` values you will accept. For example:
 
-| Provider | Sample `issWhitelist` |
+| Provider | Sample `iss_whitelist` |
 | -------- | ------------------- |
 | [Auth0](https://auth0.com/) | `[ 'https://${tenant}.auth0.com/' ]` |
 | [Okta](https://www.okta.com/) | `[ 'https://${tenant}.oktapreview.com/oauth2/${appName}' ]` |
@@ -32,11 +32,11 @@ opts = { issWhiteList: ['https://articulate.auth0.com/'] }
 validator = Authentic::Validator.new opts
 
 # Simply returns true or false based on validity
-isValid = validator.valid request.cookies[:token]
+isValid = validator.valid?(request.cookies[:token])
 
 # Raises errors when it cannot validate a given token.
 begin
-    validator.ensure_valid request.cookies[:token]
+    validator.ensure_valid(request.cookies[:token])
 rescue InvalidToken, InvalidKey, RequestError => e
     # do stuff
 end
@@ -44,9 +44,9 @@ end
 
 ## Options
 
-Instantiate `Authentic::Validator` with an options hash, which must contain an `issWhitelist` array listing the `token.payload.iss` values you will accept. For example:
+Instantiate `Authentic::Validator` with an options hash, which must contain an `iss_whitelist` array listing the `token.payload.iss` values you will accept. For example:
 
-| Name             | Default | Required | Notes                                                        |
-| ---------------- | ------- | -------- | -------------------------------------------------------------|
-| issWhiteList     | N/A     | y        |                                                              |
-| cacheMaxAge      | `'10h'` | n        | Supports seconds, minutes, and hours. Example `'10h 30m 60s'`|
+| Name            | Default | Required | Notes                                                        |
+| --------------- | ------- | -------- | -------------------------------------------------------------|
+| iss_whitelist   | N/A     | y        |                                                              |
+| cache_max_age   | `'10h'` | n        | Supports seconds, minutes, and hours. Example `'10h 30m 60s'`|
