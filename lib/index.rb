@@ -18,10 +18,10 @@ module Authentic
   class Validator
     def initialize(opts)
       @opts = opts
-      @clients = {}
-      @well_known = '/.well-known/openid-configuration'
       valid_opts = @opts && @opts[:issWhiteList] && !@opts[:issWhiteList].empty?
       raise IncompleteOptions unless valid_opts
+
+      @manager = KeyManager.new @opts[:cacheMaxAge]
     end
 
     # Validates token, returns true if valid, false if not.
@@ -41,7 +41,7 @@ module Authentic
       raise InvalidToken, 'invalid nil JWT provided' unless token
 
       begin
-        jwt = JSON::JWT.decode token, :skip_verification
+        jwt = JSON::JWT.decode(token, :skip_verification)
       rescue JSON::JWT::InvalidFormat
         # For sake of simplicity only exposing this error to consumers
         raise InvalidToken, 'invalid JWT format'
@@ -49,15 +49,38 @@ module Authentic
       iss = jwt[:iss]
       raise InvalidToken, 'JWT iss was not located in provided whitelist' unless @opts[:issWhiteList].index iss
 
-      @clients[iss] || hydrate_client(iss)
-
       begin
-        @clients[iss].call(jwt)
+        key = @manager.get jwt
+
+        # Slightly more accurate to raise a key error here for nil key,
+        # rather then verify raising an error that would lead to InvalidToken
+        raise InvalidKey, 'invalid JWK' unless key != nil
+
+        jwt.verify! key
       rescue JSON::JWT::UnexpectedAlgorithm, JSON::JWT::VerificationFailed
-        raise InvalidToken, 'failed to valid token against JWK'
+        raise InvalidToken, 'failed to validate token against JWK'
       rescue OpenSSL::PKey::PKeyError
         raise InvalidKey, 'invalid JWK'
       end
+    end
+  end
+
+  class KeyManager
+    def initialize(max_age)
+      @store = Cache::KeyStore.new(max_age || '10h')
+      @well_known = '/.well-known/openid-configuration'
+    end
+
+    def get(jwt)
+      iss = jwt[:iss]
+
+      result = @store.get(iss, jwt.kid)
+
+      return result unless result.nil?
+
+      # Refresh all keys for an issuer while I have the updated data on hand
+      hydrate_iss_keys iss
+      @store.get(iss, jwt.kid)
     end
 
     def valid_rsa_key(key)
@@ -68,7 +91,15 @@ module Authentic
       valid_rsa_key(key) && ((key['x5c'] && key['x5c'].length) || (key['n'] && key['e']))
     end
 
-    def hydrate_client(iss)
+    def json_req(uri)
+      resp = Unirest.get uri, headers: { 'Accept' => 'application/json' }
+      ok = resp.code > 199 && resp.code < 300
+      raise RequestError.new("failed to retrieve JWK, status #{resp.code}", resp.code) unless ok
+
+      resp.body
+    end
+
+    def hydrate_iss_keys(iss)
       uri = URI.join iss, @well_known
       json = json_req uri.to_s
       body = json_req json['jwks_uri']
@@ -76,24 +107,17 @@ module Authentic
       raise InvalidKey, "no valid JWK found, #{json['jwks_uri']}" if body['keys'].blank?
 
       keys = body['keys'].select { |key| valid_key(key) }
-      key_map = {}
-      body['keys'].each do |key|
-        key_map[key['kid']] = JSON::JWK.new(
-          kty: key['kty'],
-          e: key['e'],
-          n: key['n'],
-          kid: key['kid']
+      keys.each do |key|
+        @store.set(
+          iss, key['kid'],
+          JSON::JWK.new(
+            kty: key['kty'],
+            e: key['e'],
+            n: key['n'],
+            kid: key['kid']
+          )
         )
       end
-      @clients[iss] = proc { |jwt| jwt.verify! key_map[jwt.kid] }
-    end
-
-    def json_req(uri)
-      resp = Unirest.get uri, headers: { 'Accept' => 'application/json' }
-      ok = resp.code > 199 && resp.code < 300
-      raise RequestError.new("failed to retrieve JWK, status #{resp.code}", resp.code) unless ok
-
-      resp.body
     end
   end
 end

@@ -15,5 +15,6 @@ group :test do
   gem 'codecov'
   gem 'json'
   gem 'rspec'
+  gem 'timecop'
   gem 'webmock'
 end

@@ -1,5 +1,6 @@
 require 'json'
 require 'spec_helper'
+require 'timecop'
 require 'webmock/rspec'
 
 test_url = 'https://authentic.articulate.com/.well-known/openid-configuration'
@@ -18,7 +19,7 @@ describe 'Authentic' do
   }
 
   before(:each) do
-    opts = { issWhiteList: [@oidc['issuer']] }
+    opts = { issWhiteList: [@oidc['issuer']], cacheMaxAge: '1m' }
     @test_instance = Authentic::Validator.new opts
   end
 
@@ -40,10 +41,22 @@ describe 'Authentic' do
     end
 
     it 'caches the jwks client' do
-      expect(@test_instance.valid(token)).to be(true)
+      # hydrates caches
       expect(@test_instance.valid(token)).to be(true)
       expect(a_request(:get, test_url)).to have_been_made.times(1)
       expect(a_request(:get, test_jwks_url)).to have_been_made.times(1)
+
+      # In cache and thus does not make a downstream request
+      expect(@test_instance.valid(token)).to be(true)
+      expect(a_request(:get, test_url)).to have_been_made.times(1)
+      expect(a_request(:get, test_jwks_url)).to have_been_made.times(1)
+
+      # Cache expires and it calls through
+      t = Time.now.utc + 60
+      Timecop.travel(t)
+      expect(@test_instance.valid(token)).to be(true)
+      expect(a_request(:get, test_url)).to have_been_made.times(2)
+      expect(a_request(:get, test_jwks_url)).to have_been_made.times(2)
     end
 
     it 'returns false when invalid JWT is provided' do
