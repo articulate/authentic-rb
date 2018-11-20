@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path('oidc_key', __dir__)
+require 'authentic/oidc_key'
 
 # nodoc
 module Authentic

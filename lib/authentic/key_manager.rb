@@ -3,7 +3,7 @@
 require 'json/jwt'
 require 'unirest'
 require 'uri'
-require File.expand_path('key_store', __dir__)
+require 'authentic/key_store'
 
 module Authentic
   # Internal: manages JWK retrieval, caching, and validation.

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require File.expand_path('error', __dir__)
-require File.expand_path('key_manager', __dir__)
+require 'authentic/error'
+require 'authentic/key_manager'
 
 # Public: proper validation of JWTs against JWKs.
 module Authentic
@@ -31,7 +31,7 @@ module Authentic
     def initialize(options = {})
       @opts = options
       @iss_whitelist = opts.fetch(:iss_whitelist) { ENV['AUTHENTIC_ISS_WHITELIST']&.split(',') }
-      valid_opts = !iss_whitelist.empty?
+      valid_opts = !iss_whitelist&.empty?
       raise IncompleteOptions unless valid_opts
 
       @manager = KeyManager.new opts[:cache_max_age]
