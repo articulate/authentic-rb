@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require File.expand_path('oidc_key', __dir__)
+
 # nodoc
 module Authentic
   # Internal: Key store for caching JWKs.

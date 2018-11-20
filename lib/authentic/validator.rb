@@ -1,14 +1,37 @@
 # frozen_string_literal: true
 
+require File.expand_path('error', __dir__)
+require File.expand_path('key_manager', __dir__)
+
 # Public: proper validation of JWTs against JWKs.
 module Authentic
+  # Public: validate JWTs against JWKs using iss whitelist in an environment variable.
+  #
+  # token - raw JWT.
+  #
+  # Returns boolean.
+  def self.valid?(token)
+    Validator.new.valid?(token)
+  end
+
+  # Public: uses environment variable for iss whitelist and validates JWT,
+  # raises an error for invalid JWTs, errors requesting JWKs, the lack of valid JWKs, or non white listed ISS.
+  #
+  # token - raw JWT.
+  #
+  # Returns nothing.
+  def self.ensure_valid(token)
+    Validator.new.ensure_valid(token)
+  end
+
   # Public: validates JWTs against JWKs.
   class Validator
-    attr_reader :manager, :opts
+    attr_reader :iss_whitelist, :manager, :opts
 
-    def initialize(options)
+    def initialize(options = {})
       @opts = options
-      valid_opts = opts && opts[:iss_whitelist] && !opts[:iss_whitelist].empty?
+      @iss_whitelist = opts.fetch(:iss_whitelist) { ENV['AUTHENTIC_ISS_WHITELIST']&.split(',') }
+      valid_opts = !iss_whitelist.empty?
       raise IncompleteOptions unless valid_opts
 
       @manager = KeyManager.new opts[:cache_max_age]
@@ -59,7 +82,7 @@ module Authentic
       raise InvalidToken, 'invalid nil JWT provided' unless token
 
       JSON::JWT.decode(token, :skip_verification).tap do |jwt|
-        raise InvalidToken, 'JWT iss was not located in provided whitelist' unless opts[:iss_whitelist].index jwt[:iss]
+        raise InvalidToken, 'JWT iss was not located in provided whitelist' unless iss_whitelist.index jwt[:iss]
       end
     rescue JSON::JWT::InvalidFormat
       raise InvalidToken, 'invalid JWT format'

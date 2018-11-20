@@ -34,113 +34,121 @@ G4bSHL7szeaPc3HT0VrhFUntRLlJHzw7pZvRJG2WExj6HJi-Ug3LDwQOj47Gf_ywlEydBAQz7u98JK2Z
 sXS-EkPd8Y27G64PnHnNjaY3sLrOc9peeD5Xh82TSjeMFFAPpiYNtTCixnfZeQCCtxOCPhiDYAwDSxaLbrOcDAYdO0ytKQ9dBfFoY0AzJNqgJUOPVeeC_\
 AgEJeLIaSKVJAFqZAB8t5VagvVGIqcu7TaMCOmOZx_5A8Xc9JVmRoKDAMlizQ"
 
-describe 'Authentic::Validator' do
+describe 'Authentic' do
   let(:oidc_file) { File.read('./spec/fixtures/oidc.json') }
   let(:key_file) { File.read('./spec/fixtures/keys.json') }
   let(:oidc) { JSON.parse(oidc_file) }
 
+  before { ENV['AUTHENTIC_ISS_WHITELIST'] = oidc['issuer'] }
   before { stub_request(:get, test_url).to_return(body: oidc_file) }
   before { stub_request(:get, test_jwks_url).to_return(body: key_file) }
 
-  let(:opts) { { iss_whitelist: [@oidc['issuer']], cache_max_age: '1m' } }
-  subject { Authentic::Validator.new(opts) }
-  before do
-    oidc_file = File.read('./spec/fixtures/oidc.json')
-    key_file = File.read('./spec/fixtures/keys.json')
-    @oidc = JSON.parse(oidc_file)
-    stub_request(:get, test_url).to_return(body: oidc_file)
-    stub_request(:get, test_jwks_url).to_return(body: key_file)
-  end
-
-  describe 'init class' do
-    let(:opts) { {} }
-    it 'errors if no opts are provided' do
-      expect { subject }.to raise_error(Authentic::IncompleteOptions)
-    end
-
-    let(:opts) { { iss_whitelist: [] } }
-    it 'errors if no iss_whitelist urls are provided' do
-      expect { subject }.to raise_error(Authentic::IncompleteOptions)
+  describe 'Authentic.valid?' do
+    it 'uses environment variable for iss whitelist' do
+      expect(Authentic.valid?(token)).to be(true)
     end
   end
 
-  describe '.valid' do
-    it 'validates the jwt against the jwks' do
-      expect(subject.valid?(token)).to be(true)
-    end
-
-    it 'caches the jwks client and thus only makes one request downstream' do
-      # hydrates caches
-      subject.valid?(token)
-      # In cache and thus does not make a downstream request
-      subject.valid?(token)
-      expect(a_request(:get, test_jwks_url)).to have_been_made.times(1)
-    end
-
-    it 'fetches new JWT when cache expires' do
-      # hydrates caches
-      subject.valid?(token)
-
-      # Cache expires and it calls through
-      t = Time.now.utc + 60
-      Timecop.travel(t)
-      subject.valid?(token)
-      expect(a_request(:get, test_jwks_url)).to have_been_made.times(2)
-    end
-
-    it 'returns false when invalid JWT is provided' do
-      expect(subject.valid?('mercurialgoose')).to be(false)
-    end
-
-    it 'returns false with nil token' do
-      expect(subject.valid?(nil)).to be(false)
-    end
-
-    it 'returns false when invalid iss is provided' do
-      expect(subject.valid?(bad_iss)).to be(false)
+  describe 'Authentic.ensure_valid?' do
+    it 'uses environment variable for iss whitelist' do
+      expect(Authentic.valid?(token)).to be(true)
     end
   end
-  describe '.ensure_valid' do
-    it 'passes valid token' do
-      expect { subject.ensure_valid(token) }.not_to raise_error
+
+  describe 'Authentic::Validator' do
+    let(:opts) { { iss_whitelist: [oidc['issuer']], cache_max_age: '1m' } }
+    subject { Authentic::Validator.new(opts) }
+
+    describe 'init class' do
+      let(:opts) { {} }
+      it 'errors if no opts are provided' do
+        expect { subject }.to raise_error(Authentic::IncompleteOptions)
+      end
+
+      let(:opts) { { iss_whitelist: [] } }
+      it 'errors if no iss_whitelist urls are provided' do
+        expect { subject }.to raise_error(Authentic::IncompleteOptions)
+      end
     end
 
-    it 'raises error when invalid JWT is provided' do
-      expect { subject.ensure_valid('sillygoose') }.to raise_error(Authentic::InvalidToken)
-    end
+    describe '.valid' do
+      it 'validates the jwt against the jwks' do
+        expect(subject.valid?(token)).to be(true)
+      end
 
-    it 'raises error with nil token' do
-      expect { subject.ensure_valid(nil) }.to raise_error(Authentic::InvalidToken)
-    end
+      it 'caches the jwks client and thus only makes one request downstream' do
+        # hydrates caches
+        subject.valid?(token)
+        # In cache and thus does not make a downstream request
+        subject.valid?(token)
+        expect(a_request(:get, test_jwks_url)).to have_been_made.times(1)
+      end
 
-    it 'raises error when invalid iss is provided' do
-      expect { subject.ensure_valid(bad_iss) }.to raise_error(Authentic::InvalidToken)
-    end
+      it 'fetches new JWT when cache expires' do
+        # hydrates caches
+        subject.valid?(token)
 
-    it 'raises error when token is invalid' do
-      expect { subject.ensure_valid(bad_token) }.to raise_error(Authentic::InvalidToken)
-    end
+        # Cache expires and it calls through
+        t = Time.now.utc + 60
+        Timecop.travel(t)
+        subject.valid?(token)
+        expect(a_request(:get, test_jwks_url)).to have_been_made.times(2)
+      end
 
-    it 'raises a request error when the OIDC request fails' do
-      stub_request(:get, test_url).to_return(status: 500)
-      expect { subject.ensure_valid(token) }.to raise_error(Authentic::RequestError)
-    end
+      it 'returns false when invalid JWT is provided' do
+        expect(subject.valid?('mercurialgoose')).to be(false)
+      end
 
-    it 'raises a request error when the JWK request fails' do
-      stub_request(:get, test_jwks_url).to_return(status: 500)
-      expect { subject.ensure_valid(token) }.to raise_error(Authentic::RequestError)
-    end
+      it 'returns false with nil token' do
+        expect(subject.valid?(nil)).to be(false)
+      end
 
-    it 'raises an error when there are no valid JWKs' do
-      bad_key_file = File.read('./spec/fixtures/bad_keys.json')
-      stub_request(:get, test_jwks_url).to_return(body: bad_key_file)
-      expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidKey)
+      it 'returns false when invalid iss is provided' do
+        expect(subject.valid?(bad_iss)).to be(false)
+      end
     end
+    describe '.ensure_valid' do
+      it 'passes valid token' do
+        expect { subject.ensure_valid(token) }.not_to raise_error
+      end
 
-    it 'raises an error when there are no keys returned by config endpoint' do
-      no_key_file = File.read('./spec/fixtures/no_keys.json')
-      stub_request(:get, test_jwks_url).to_return(body: no_key_file)
-      expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidKey)
+      it 'raises error when invalid JWT is provided' do
+        expect { subject.ensure_valid('sillygoose') }.to raise_error(Authentic::InvalidToken)
+      end
+
+      it 'raises error with nil token' do
+        expect { subject.ensure_valid(nil) }.to raise_error(Authentic::InvalidToken)
+      end
+
+      it 'raises error when invalid iss is provided' do
+        expect { subject.ensure_valid(bad_iss) }.to raise_error(Authentic::InvalidToken)
+      end
+
+      it 'raises error when token is invalid' do
+        expect { subject.ensure_valid(bad_token) }.to raise_error(Authentic::InvalidToken)
+      end
+
+      it 'raises a request error when the OIDC request fails' do
+        stub_request(:get, test_url).to_return(status: 500)
+        expect { subject.ensure_valid(token) }.to raise_error(Authentic::RequestError)
+      end
+
+      it 'raises a request error when the JWK request fails' do
+        stub_request(:get, test_jwks_url).to_return(status: 500)
+        expect { subject.ensure_valid(token) }.to raise_error(Authentic::RequestError)
+      end
+
+      it 'raises an error when there are no valid JWKs' do
+        bad_key_file = File.read('./spec/fixtures/bad_keys.json')
+        stub_request(:get, test_jwks_url).to_return(body: bad_key_file)
+        expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidKey)
+      end
+
+      it 'raises an error when there are no keys returned by config endpoint' do
+        no_key_file = File.read('./spec/fixtures/no_keys.json')
+        stub_request(:get, test_jwks_url).to_return(body: no_key_file)
+        expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidKey)
+      end
     end
   end
 end
