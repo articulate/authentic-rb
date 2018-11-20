@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 gemspec
@@ -5,10 +7,10 @@ gemspec
 group :development, :test do
   gem 'coveralls'
   gem 'dotenv'
+  gem 'pry'
+  gem 'rake'
   gem 'rubocop'
   gem 'yard'
-  gem 'rake'
-  gem 'pry'
 end
 
 group :test do

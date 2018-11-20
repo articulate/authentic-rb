@@ -1,4 +1,7 @@
-#!/usr/bin/env rake
+# frozen_string_literal: true
+
+# !/usr/bin/env rake
+
 require 'bundler/gem_tasks'
 
 begin
@@ -16,10 +19,10 @@ begin
 
   desc 'Run Unit Tests'
   RSpec::Core::RakeTask.new(:test) do |t|
-    t.pattern = FileList["spec/**/*_spec.rb"]
+    t.pattern = FileList['spec/**/*_spec.rb']
   end
 
-  task default: [:rubocop, :test]
+  task default: %I[rubocop test]
 rescue LoadError
   puts 'Load Error - No RSpec'
 end

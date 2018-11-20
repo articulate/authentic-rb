@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'pry'
 
 require 'simplecov'
@@ -14,8 +16,8 @@ Dotenv.load
 require 'webmock/rspec'
 WebMock.allow_net_connect!
 
-$LOAD_PATH.unshift File.expand_path('..', __FILE__)
-$LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift File.expand_path('.', __dir__)
+$LOAD_PATH.unshift File.expand_path('lib', __dir__)
 
 Dir['./lib/**/*.rb'].each { |f| require f }
 
