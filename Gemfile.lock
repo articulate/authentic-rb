@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    authentic-rb (0.0.1)
+    authentic-rb (1.0.1)
       json-jwt (~> 1.9, >= 1.9.4)
-      unirest (~> 1.1, >= 1.1.2)
+      unirest (~> 1.1.2, >= 1.1.2)
 
 GEM
   remote: https://rubygems.org/
