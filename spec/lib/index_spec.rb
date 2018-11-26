@@ -7,6 +7,8 @@ require 'webmock/rspec'
 
 test_url = 'https://authentic.articulate.com/.well-known/openid-configuration'
 test_jwks_url = 'https://authentic.articulate.com/v1/keys'
+test_okta_url = 'https://id-dev.articulate.zone/oauth2/default/.well-known/openid-configuration'
+test_okta_jwks_url = 'https://id-dev.articulate.zone/oauth2/default/v1/keys'
 bad_iss = "eyJraWQiOiJEYVgxMWdBcldRZWJOSE83RU1QTUw1VnRUNEV3cmZrd2M1U2xHaVd2VXdBIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHV\
 kanlqc3NidDJTMVFWcjBoNyIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9iYWQtaXNzLmNvbSIsImF1ZCI6IjBvYWRqeWs1MjNobFpmeWIxMGg3IiwiaWF0\
 IjoxNTE2NjM3MDkxLCJleHAiOjE1MTY2NDA2OTEsImp0aSI6IklELmM4amh6b2t5MGZGTlByOExfU0NycnBnVFRVeUFvY3RIdjY5T0tTbWY1R0EiLCJhb\
@@ -34,9 +36,21 @@ G4bSHL7szeaPc3HT0VrhFUntRLlJHzw7pZvRJG2WExj6HJi-Ug3LDwQOj47Gf_ywlEydBAQz7u98JK2Z
 sXS-EkPd8Y27G64PnHnNjaY3sLrOc9peeD5Xh82TSjeMFFAPpiYNtTCixnfZeQCCtxOCPhiDYAwDSxaLbrOcDAYdO0ytKQ9dBfFoY0AzJNqgJUOPVeeC_\
 AgEJeLIaSKVJAFqZAB8t5VagvVGIqcu7TaMCOmOZx_5A8Xc9JVmRoKDAMlizQ"
 
+okta_token = "eyJraWQiOiJJb3ZWWUZiOFBielR2ZWFaN0RfQ2F6QjRLX0o5RElPQnQ5VHpIR3hHWnpnIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMH\
+VoMjE4aGRwZHhYOVJHNDBoNyIsIm5hbWUiOiJNYXR0IFRlc3RpbmciLCJlbWFpbCI6Im1lbGhvdGlieUBhcnRpY3VsYXRlLmNvbSIsInZlciI6MSwiaXNzI\
+joiaHR0cHM6Ly9pZC1kZXYuYXJ0aWN1bGF0ZS56b25lL29hdXRoMi9kZWZhdWx0IiwiYXVkIjoiMG9haDF3NXJobmlOd0l4ME8waDciLCJpYXQiOjE1NDMy\
+NjQwOTMsImV4cCI6MTU0MzI2NzY5MywianRpIjoiSUQuX1IzMS1mWERhMlpOZWQ4bVNtUmZxUW0yMnRJMnRBbTVlam9XTjAzUEgyTSIsImFtciI6WyJwd2Q\
+iXSwiaWRwIjoiMDBvZjlkNDg1N2pZaHF6Z3AwaDciLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJtZWxob3RpYnlAYXJ0aWN1bGF0ZS5jb20iLCJhdXRoX3RpbW\
+UiOjE1NDMyNjQwOTAsImF0X2hhc2giOiJDVTU2ZnMyVnhFMUJxR3BJUTdoRk1nIn0.Jzqc1nfUAOyevSiEN12iDR6tI9ZMmCymJcTcQAY5En-M_m7usd5fz\
+uytLi8ckelSfm8OA_J2_0FEuymNtiBYyDfuGncRvXB6wZUBT84bm2YUzRucNfs0fEXyGgFELvMvSQbmxarEOSSx4bQa_Uj1hamYTQIe7B5VW4LedSgqHIdR\
+R-9g9w6JEtgg8bvUHxk0lWFfEWJWrOY_CgN7wTb3B2Ck-9021j3PyHw_Zoe19OaQ5K5TLdqvZQgr9EsO-5OCOWRdyOpxJDMb5VEyhOQ9Z9QEuxY6BIlBIz4\
+AuSfiO40TxoGZ20yDKegfoV4thjHqF7izVdPgMTJy6sDJ7Q9xEg"
+
 describe 'Authentic' do
   let(:oidc_file) { File.read('./spec/fixtures/oidc.json') }
+  let(:okta_file) { File.read('./spec/fixtures/okta.json') }
   let(:key_file) { File.read('./spec/fixtures/keys.json') }
+  let(:okta_key_file) { File.read('./spec/fixtures/okta_keys.json') }
   let(:oidc) { JSON.parse(oidc_file) }
 
   before { ENV['AUTHENTIC_ISS_WHITELIST'] = oidc['issuer'] }
@@ -49,9 +63,21 @@ describe 'Authentic' do
     end
   end
 
-  describe 'Authentic.ensure_valid?' do
+  describe 'Authentic.ensure_valid' do
     it 'uses environment variable for iss whitelist' do
-      expect(Authentic.valid?(token)).to be(true)
+      expect { Authentic.ensure_valid(token) }.not_to raise_error
+    end
+
+    describe 'Okta token' do
+      before { stub_request(:get, test_okta_url).to_return(body: okta_file) }
+      before { stub_request(:get, test_okta_jwks_url).to_return(body: okta_key_file) }
+      before { ENV['AUTHENTIC_ISS_WHITELIST'] = 'https://id-dev.articulate.zone/oauth2/default' }
+
+      it 'uses environment variable for iss whitelist with Okta token' do
+        expect { Authentic.ensure_valid(okta_token) }.not_to raise_error
+        expect(a_request(:get, test_okta_url)).to have_been_made.times(1)
+        expect(a_request(:get, test_okta_jwks_url)).to have_been_made.times(1)
+      end
     end
   end
 

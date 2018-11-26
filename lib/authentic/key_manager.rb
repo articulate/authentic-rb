@@ -2,7 +2,6 @@
 
 require 'json/jwt'
 require 'rest-client'
-require 'uri'
 require 'authentic/key_store'
 
 module Authentic
@@ -72,7 +71,7 @@ module Authentic
     #
     # Returns nothing.
     def hydrate_iss_keys(iss)
-      uri = URI.join iss, well_known
+      uri = iss.sub(%r{[\/]+$}, '') + well_known
       json = json_req uri.to_s
       body = json_req json['jwks_uri']
 
