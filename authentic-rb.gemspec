@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.description = 'Ruby toolkit for Auth0 API https://auth0.com.'
   s.homepage    = 'https://rubygems.org/gems/authentic-rb'
   s.metadata    = { 'source_code_uri' => 'https://github.com/articulate/authentic-rb' }
-  s.files       = Dir.glob("lib/**/*")
+  s.files       = Dir.glob('lib/**/*')
 
   s.add_runtime_dependency 'json-jwt', '~> 1.9', '>= 1.9.4'
-  s.add_runtime_dependency 'unirest', '~> 1.1.2', '>= 1.1.2'
+  s.add_runtime_dependency 'rest-client', '>= 2.0'
 end

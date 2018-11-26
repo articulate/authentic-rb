@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'json/jwt'
-require 'unirest'
+require 'rest-client'
 require 'uri'
 require 'authentic/key_store'
 
@@ -56,10 +56,14 @@ module Authentic
     #
     # Returns JSON.
     def json_req(uri)
-      resp = Unirest.get(uri, headers: { 'Accept' => 'application/json' })
-      raise RequestError.new("failed to retrieve JWK, status #{resp.code}", resp.code) unless (200..299).cover? resp.code
+      begin
+        resp = RestClient.get(uri, accept: :json)
+      rescue RestClient::ExceptionWithResponse => e
+        code = e.response.code
+        raise RequestError.new("failed to retrieve JWK, status #{code}", code)
+      end
 
-      resp.body
+      JSON.parse resp.body
     end
 
     # Internal: hydrates JWK cache.
