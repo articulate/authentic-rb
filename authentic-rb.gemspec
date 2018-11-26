@@ -14,5 +14,5 @@ Gem::Specification.new do |s|
   s.files = FileList['lib/**/*'].to_a
 
   s.add_runtime_dependency 'json-jwt', '~> 1.9', '>= 1.9.4'
-  s.add_runtime_dependency 'unirest', '~> 1.1', '>= 1.1.2'
+  s.add_runtime_dependency 'unirest', '~> 1.1.2', '>= 1.1.2'
 end
