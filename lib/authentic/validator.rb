@@ -11,7 +11,7 @@ module Authentic
   #
   # Returns boolean.
   def self.valid?(token)
-    Validator.new.valid?(token)
+    Validator.instance.valid?(token)
   end
 
   # Public: uses environment variable for iss whitelist and validates JWT,
@@ -21,20 +21,28 @@ module Authentic
   #
   # Returns nothing.
   def self.ensure_valid(token)
-    Validator.new.ensure_valid(token)
+    Validator.instance.ensure_valid(token)
   end
 
   # Public: validates JWTs against JWKs.
   class Validator
+    include Singleton
+
     attr_reader :iss_whitelist, :manager, :opts
 
-    def initialize(options = {})
+    def initialize
+      # Setup key cache with default 10h cache
+      @manager = KeyManager.new('10h')
+      @iss_whitelist = ENV['AUTHENTIC_ISS_WHITELIST']&.split(',')
+    end
+
+    def configure(options)
       @opts = options
-      @iss_whitelist = opts.fetch(:iss_whitelist) { ENV['AUTHENTIC_ISS_WHITELIST']&.split(',') }
+      @iss_whitelist = opts[:iss_whitelist]
       valid_opts = !iss_whitelist&.empty?
       raise IncompleteOptions unless valid_opts
 
-      @manager = KeyManager.new opts[:cache_max_age]
+      @manager.cache_max_age(opts.fetch(:cache_max_age, '10h'))
     end
 
     # Public: validates JWT, returns true if valid, false if not.

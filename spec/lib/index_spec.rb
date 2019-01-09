@@ -71,7 +71,7 @@ describe 'Authentic' do
     describe 'Okta token' do
       before { stub_request(:get, test_okta_url).to_return(body: okta_file) }
       before { stub_request(:get, test_okta_jwks_url).to_return(body: okta_key_file) }
-      before { ENV['AUTHENTIC_ISS_WHITELIST'] = 'https://id-dev.articulate.zone/oauth2/default' }
+      before { Authentic::Validator.instance.configure(iss_whitelist: 'https://id-dev.articulate.zone/oauth2/default') }
 
       it 'uses environment variable for iss whitelist with Okta token' do
         expect { Authentic.ensure_valid(okta_token) }.not_to raise_error
@@ -83,17 +83,13 @@ describe 'Authentic' do
 
   describe 'Authentic::Validator' do
     let(:opts) { { iss_whitelist: [oidc['issuer']], cache_max_age: '1m' } }
-    subject { Authentic::Validator.new(opts) }
+    before { Authentic::Validator.instance.configure(opts) }
+    before { Authentic::Validator.instance.manager.store.reset_all }
+    subject { Authentic::Validator.instance }
 
     describe 'init class' do
-      let(:opts) { {} }
-      it 'errors if no opts are provided' do
-        expect { subject }.to raise_error(Authentic::IncompleteOptions)
-      end
-
-      let(:opts) { { iss_whitelist: [] } }
       it 'errors if no iss_whitelist urls are provided' do
-        expect { subject }.to raise_error(Authentic::IncompleteOptions)
+        expect { subject.configure(iss_whitelist: []) }.to raise_error(Authentic::IncompleteOptions)
       end
     end
 

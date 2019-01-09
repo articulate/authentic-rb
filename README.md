@@ -16,7 +16,9 @@ bundle add authentic-rb
 
 ## Usage
 
-Instantiate `Authentic::Validator` with an options hash, which must contain an `iss_whitelist` array listing the `token.payload.iss` values you will accept. For example:
+*Note* `Authentic::Validator` enforces the singleton pattern to ensure JWK cache is persisted and not reset when it is instantiated.
+
+You can supply `Authentic::Validator.configure` a hash of options, which must contain an `iss_whitelist` array listing the `token.payload.iss` values you will accept. For example:
 
 | Provider | Sample `iss_whitelist` |
 | -------- | ------------------- |
@@ -37,7 +39,8 @@ Authentic.ensure_valid(request.cookies[:token])
 
 # Manually pass in iss_whitelist
 opts = { iss_whitelist: ['https://articulate.auth0.com/'] }
-validator = Authentic::Validator.new opts
+Authentic::Validator.configure(opts)
+validator = Authentic::Validator.instance
 
 # Simply returns true or false based on validity
 valid = validator.valid?(request.cookies[:token])
