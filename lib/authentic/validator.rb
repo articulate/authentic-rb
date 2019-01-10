@@ -12,7 +12,7 @@ module Authentic
   #
   # Returns boolean.
   def self.valid?(token, opts = {})
-    Validator.configure(opts)
+    Validator.configure(opts) unless opts.empty?
     Validator.new.valid?(token)
   end
 
@@ -24,7 +24,7 @@ module Authentic
   #
   # Returns nothing.
   def self.ensure_valid(token, opts = {})
-    Validator.configure(opts)
+    Validator.configure(opts) unless opts.empty?
     Validator.new.ensure_valid(token)
   end
 
@@ -39,11 +39,14 @@ module Authentic
     #
     # Returns nothing.
     def self.configure(opts)
-      @@iss_whitelist = opts.fetch(:iss_whitelist) { ENV['AUTHENTIC_ISS_WHITELIST']&.split(',') }
+      @@iss_whitelist = opts[:iss_whitelist]
       @@manager.cache_max_age(opts.fetch(:cache_max_age, '10h'))
     end
 
     def initialize
+      # Default iss whitelist if it is empty
+      @@iss_whitelist = @@iss_whitelist&.empty? ? ENV['AUTHENTIC_ISS_WHITELIST']&.split(',') : @@iss_whitelist
+
       valid_opts = !@@iss_whitelist&.empty?
       raise IncompleteOptions unless valid_opts
     end

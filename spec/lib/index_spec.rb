@@ -87,6 +87,7 @@ describe 'Authentic' do
     before { subject.reset_cache }
 
     describe 'init class' do
+      before { ENV['AUTHENTIC_ISS_WHITELIST'] = '' }
       it 'errors if no iss_whitelist urls are provided' do
         Authentic::Validator.configure(iss_whitelist: [])
         expect { Authentic::Validator.new }.to raise_error(Authentic::IncompleteOptions)
