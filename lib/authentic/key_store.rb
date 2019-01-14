@@ -11,8 +11,16 @@ module Authentic
 
     def initialize(max_age, data = {})
       @data = data
+      configure_max_age(max_age)
+    end
+
+    def configure_max_age(max_age)
       @max_age = max_age
       @max_age_seconds = human_time_to_seconds
+    end
+
+    def reset_all
+      @data = {}
     end
 
     # Public: Sets data, and wraps it in OIDCKey class if not presented as that type.
