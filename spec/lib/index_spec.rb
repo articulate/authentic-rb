@@ -53,7 +53,7 @@ describe 'Authentic' do
   let(:okta_key_file) { File.read('./spec/fixtures/okta_keys.json') }
   let(:oidc) { JSON.parse(oidc_file) }
 
-  before { ENV['AUTHENTIC_ISS_WHITELIST'] = oidc['issuer'] }
+  before { ENV['ISS_WHITELIST'] = oidc['issuer'] }
   before { stub_request(:get, test_url).to_return(body: oidc_file) }
   before { stub_request(:get, test_jwks_url).to_return(body: key_file) }
 
@@ -87,7 +87,7 @@ describe 'Authentic' do
     before { subject.reset_cache }
 
     describe 'init class' do
-      before { ENV['AUTHENTIC_ISS_WHITELIST'] = '' }
+      before { ENV['ISS_WHITELIST'] = '' }
       it 'errors if no iss_whitelist urls are provided' do
         Authentic::Validator.configure(iss_whitelist: [])
         expect { Authentic::Validator.new }.to raise_error(Authentic::IncompleteOptions)

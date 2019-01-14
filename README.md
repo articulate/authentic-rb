@@ -30,8 +30,8 @@ There are two basic entry points for validation. `ensure_valid` and `valid`. `va
 ```ruby
 require 'authentic'
 
-# For this method to work we must set the environment variable AUTHENTIC_ISS_WHITELIST as a comma delimited string
-ENV['AUTHENTIC_ISS_WHITELIST'] = 'https://articulate.auth0.com/,https://articulate.oktapreview.com/oauth2/default'
+# For this method to work we must set the environment variable ISS_WHITELIST as a pipe delimited string
+ENV['ISS_WHITELIST'] = 'https://articulate.auth0.com/|https://articulate.oktapreview.com/oauth2/default'
 valid = Authentic.valid?(request.cookies[:token])
 
 # Or if we want the errors to bubble up
