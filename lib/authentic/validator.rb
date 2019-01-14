@@ -45,7 +45,7 @@ module Authentic
 
     def initialize
       # Default iss whitelist if it is empty
-      @@iss_whitelist = @@iss_whitelist&.empty? ? ENV['AUTHENTIC_ISS_WHITELIST']&.split(',') : @@iss_whitelist
+      @@iss_whitelist = @@iss_whitelist&.empty? ? ENV['ISS_WHITELIST']&.split('|') : @@iss_whitelist
 
       valid_opts = !@@iss_whitelist&.empty?
       raise IncompleteOptions unless valid_opts
