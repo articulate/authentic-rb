@@ -40,7 +40,7 @@ Authentic.ensure_valid(request.cookies[:token])
 # Manually pass in iss_whitelist
 opts = { iss_whitelist: ['https://articulate.auth0.com/'] }
 Authentic::Validator.configure(opts)
-validator = Authentic::Validator.instance
+validator = Authentic::Validator.new
 
 # Simply returns true or false based on validity
 valid = validator.valid?(request.cookies[:token])
