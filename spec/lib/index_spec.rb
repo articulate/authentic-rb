@@ -57,15 +57,12 @@ describe 'Authentic' do
 
   describe 'Authentic::Validator' do
     let(:opts) { { iss_whitelist: [oidc['issuer']], cache_max_age: '1m' } }
-    before { Authentic::Validator.configure(opts) }
-    subject { Authentic::Validator.new }
-    before { subject.reset_cache }
+    subject { Authentic::Validator.new(opts) }
 
     describe 'init class' do
-      before { ENV['ISS_WHITELIST'] = '' }
+      let(:opts) {{ iss_whitelist: []}}
       it 'errors if no iss_whitelist urls are provided' do
-        Authentic::Validator.configure(iss_whitelist: [])
-        expect { Authentic::Validator.new }.to raise_error(Authentic::IncompleteOptions)
+        expect { subject }.to raise_error(Authentic::IncompleteOptions)
       end
     end
 
