@@ -4,7 +4,7 @@ $LOAD_PATH.push File.expand_path('lib', __dir__)
 
 Gem::Specification.new do |s|
   s.name    = 'authentic-rb'
-  s.version = '1.2.0'
+  s.version = '1.3.0'
   s.authors = ['Articulate', 'Andy Gertjejansen']
   s.summary = 'validation of JWTs against JWKs'
   s.description = 'Ruby toolkit for Auth0 API https://auth0.com.'
