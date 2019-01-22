@@ -22,7 +22,7 @@ module Authentic
     #
     # Returns boolean.
     def valid?(token)
-      ensure_valid token
+      ensure_valid(token)
       true
     rescue InvalidToken, InvalidKey, RequestError
       false
@@ -35,16 +35,16 @@ module Authentic
     #
     # Returns nothing.
     def ensure_valid(token)
-      jwt = decode_jwt token
+      jwt = decode_jwt(token)
 
       begin
-        key = manager.get jwt
+        key = manager.get(jwt)
 
         # Slightly more accurate to raise a key error here for nil key,
         # rather then verify raising an error that would lead to InvalidToken
         raise InvalidKey, 'invalid JWK' if key.nil?
 
-        jwt.verify! key
+        jwt.verify!(key)
       rescue JSON::JWT::UnexpectedAlgorithm, JSON::JWT::VerificationFailed
         raise InvalidToken, 'failed to validate token against JWK'
       rescue OpenSSL::PKey::PKeyError
