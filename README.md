@@ -25,6 +25,8 @@ Instantiate `Authentic::Validator` with an options hash, which must contain an `
 
 There are two basic entry points for validation. `ensure_valid` and `valid`. `valid` basically wraps `ensure_valid`, catches any errors it raises, and returns a simple boolean for those that prefer that idiom. Here are some examples of both:
 
+***Note**: JWKs are cached in memory at the instance level. Instantiating a new instance of `Authentic::Validator` will result in a cold cache, resulting in two HTTP requests to get OIDC config then subsequently the issuer's JWKs. Generally it is best to instantiate this at the Application level thus making use of the JWK cache.*
+
 ```ruby
 require 'authentic'
 
