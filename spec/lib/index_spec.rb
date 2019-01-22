@@ -51,6 +51,11 @@ describe 'Authentic' do
       it 'errors if no iss_whitelist urls are provided' do
         expect { subject }.to raise_error(Authentic::IncompleteOptions)
       end
+
+      it 'sets max_age default' do
+        opts[:iss_whitelist] = [oidc['issuer']]
+        expect(subject.manager.store.max_age_seconds).to(be(36000))
+      end
     end
 
     describe '.valid' do

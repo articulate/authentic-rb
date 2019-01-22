@@ -10,7 +10,7 @@ module Authentic
     attr_reader :store, :well_known
 
     def initialize(max_age)
-      @store = KeyStore.new(max_age || '10h')
+      @store = KeyStore.new(max_age)
       @well_known = '/.well-known/openid-configuration'
     end
 
