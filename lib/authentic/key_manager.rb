@@ -14,10 +14,6 @@ module Authentic
       @well_known = '/.well-known/openid-configuration'
     end
 
-    def cache_max_age(max_age)
-      @store.configure_max_age(max_age)
-    end
-
     # Public: retrieves JWK.
     #
     # jwt - JSON::JWT.

@@ -39,33 +39,22 @@ describe 'Authentic' do
   let(:key_file) { File.read('./spec/fixtures/keys.json') }
   let(:oidc) { JSON.parse(oidc_file) }
 
-  before { ENV['ISS_WHITELIST'] = oidc['issuer'] }
   before { stub_request(:get, test_url).to_return(body: oidc_file) }
   before { stub_request(:get, test_jwks_url).to_return(body: key_file) }
 
-  describe 'Authentic.valid?' do
-    it 'uses environment variable for iss whitelist' do
-      expect(Authentic.valid?(token)).to be(true)
-    end
-  end
-
-  describe 'Authentic.ensure_valid' do
-    it 'uses environment variable for iss whitelist' do
-      expect { Authentic.ensure_valid(token) }.not_to raise_error
-    end
-  end
-
   describe 'Authentic::Validator' do
     let(:opts) { { iss_whitelist: [oidc['issuer']], cache_max_age: '1m' } }
-    before { Authentic::Validator.configure(opts) }
-    subject { Authentic::Validator.new }
-    before { subject.reset_cache }
+    subject { Authentic::Validator.new(opts) }
 
     describe 'init class' do
-      before { ENV['ISS_WHITELIST'] = '' }
+      let(:opts) {{ iss_whitelist: []}}
       it 'errors if no iss_whitelist urls are provided' do
-        Authentic::Validator.configure(iss_whitelist: [])
-        expect { Authentic::Validator.new }.to raise_error(Authentic::IncompleteOptions)
+        expect { subject }.to raise_error(Authentic::IncompleteOptions)
+      end
+
+      it 'sets max_age default' do
+        opts[:iss_whitelist] = [oidc['issuer']]
+        expect(subject.manager.store.max_age_seconds).to(be(36000))
       end
     end
 
