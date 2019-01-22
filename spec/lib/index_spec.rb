@@ -39,21 +39,8 @@ describe 'Authentic' do
   let(:key_file) { File.read('./spec/fixtures/keys.json') }
   let(:oidc) { JSON.parse(oidc_file) }
 
-  before { ENV['ISS_WHITELIST'] = oidc['issuer'] }
   before { stub_request(:get, test_url).to_return(body: oidc_file) }
   before { stub_request(:get, test_jwks_url).to_return(body: key_file) }
-
-  describe 'Authentic.valid?' do
-    it 'uses environment variable for iss whitelist' do
-      expect(Authentic.valid?(token)).to be(true)
-    end
-  end
-
-  describe 'Authentic.ensure_valid' do
-    it 'uses environment variable for iss whitelist' do
-      expect { Authentic.ensure_valid(token) }.not_to raise_error
-    end
-  end
 
   describe 'Authentic::Validator' do
     let(:opts) { { iss_whitelist: [oidc['issuer']], cache_max_age: '1m' } }

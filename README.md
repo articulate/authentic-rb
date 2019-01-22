@@ -28,16 +28,9 @@ There are two basic entry points for validation. `ensure_valid` and `valid`. `va
 ```ruby
 require 'authentic'
 
-# For this method to work we must set the environment variable ISS_WHITELIST as a pipe delimited string
-ENV['ISS_WHITELIST'] = 'https://articulate.auth0.com/|https://articulate.oktapreview.com/oauth2/default'
-valid = Authentic.valid?(request.cookies[:token])
-
-# Or if we want the errors to bubble up
-Authentic.ensure_valid(request.cookies[:token])
-
-# Manually pass in iss_whitelist
+# Ensure you pass along your ISS whitelist when instantiating the validator
 opts = { iss_whitelist: ['https://articulate.auth0.com/'] }
-validator = Authentic::Validator.new opts
+validator = Authentic::Validator.new(opts)
 
 # Simply returns true or false based on validity
 valid = validator.valid?(request.cookies[:token])
