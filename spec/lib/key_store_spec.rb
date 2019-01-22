@@ -11,7 +11,7 @@ describe 'utils' do
     }.each do |a, b|
       describe "Given inputs #{a}" do
         it "returns #{b}" do
-          expect(Authentic::KeyStore.new(a).human_time_to_seconds).to be(b.to_i)
+          expect(Authentic::KeyStore.new(a).human_time_to_seconds(a)).to be(b.to_i)
         end
       end
     end

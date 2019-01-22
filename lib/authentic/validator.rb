@@ -10,10 +10,10 @@ module Authentic
     attr_reader :iss_whitelist, :manager, :opts
 
     def initialize(options = {})
-      @iss_whitelist = options.fetch(:iss_whitelist, [])
+      @iss_whitelist = options.fetch(:iss_whitelist) { [] }
       raise IncompleteOptions if iss_whitelist.empty?
 
-      @manager = options.fetch(:key_manager, KeyManager.new(options[:cache_max_age]))
+      @manager = options.fetch(:key_manager) { KeyManager.new(options[:cache_max_age]) }
     end
 
     # Public: validates JWT, returns true if valid, false if not.
