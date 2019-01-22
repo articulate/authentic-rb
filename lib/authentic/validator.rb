@@ -13,7 +13,7 @@ module Authentic
       @iss_whitelist = options.fetch(:iss_whitelist, [])
       raise IncompleteOptions if iss_whitelist.empty?
 
-      @manager = options.fetch(:keyManager, KeyManager.new(options[:cache_max_age]))
+      @manager = options.fetch(:key_manager, KeyManager.new(options[:cache_max_age]))
     end
 
     # Public: validates JWT, returns true if valid, false if not.
