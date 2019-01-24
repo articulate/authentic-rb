@@ -99,6 +99,24 @@ describe 'Authentic' do
         expect { subject.ensure_valid(token) }.not_to raise_error
       end
 
+      it "returns the token body" do
+        token_body = {
+          "amr" => ["pwd"],
+          "aud"=>"0oadjyk523hlZfyb10h7",
+          "auth_time"=>1516637091,
+          "exp"=>1516640691,
+          "iat"=>1516637091,
+          "idp" => "00ocg4tbu6FK2Dh5G0h7",
+          "iss" => "https://authentic.articulate.com/",
+          "jti" => "ID.c8jhzoky0fFNPr8L_SCrrpgTTUyAoctHv69OKSmf5GA",
+          "nonce" => "2",
+          "sub"=>"00udjyjssbt2S1QVr0h7",
+          "tenantId"=>"d42e33fd-f05e-4a4e-9050-5b7b2e800834",
+          "ver"=>1
+        }
+        expect(subject.ensure_valid(token)).to eq(token_body)
+      end
+
       it 'raises error when invalid JWT is provided' do
         expect { subject.ensure_valid('sillygoose') }.to raise_error(Authentic::InvalidToken)
       end
