@@ -39,7 +39,8 @@ valid = validator.valid?(request.cookies[:token])
 
 # Raises errors when it cannot validate a given token.
 begin
-    validator.ensure_valid(request.cookies[:token])
+    # returns the decoded JWT
+    jwt = validator.ensure_valid(request.cookies[:token])
 rescue InvalidToken, InvalidKey, RequestError => e
     # do stuff
 end
