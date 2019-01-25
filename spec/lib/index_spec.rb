@@ -41,6 +41,9 @@ describe 'Authentic' do
 
   before { stub_request(:get, test_url).to_return(body: oidc_file) }
   before { stub_request(:get, test_jwks_url).to_return(body: key_file) }
+  before { Timecop.travel(Time.new(2018, 01, 01)) } #token defined above expires on 2018/01/22
+
+  after { Timecop.return }
 
   describe 'Authentic::Validator' do
     let(:opts) { { iss_whitelist: [oidc['issuer']], cache_max_age: '1m' } }
@@ -77,9 +80,10 @@ describe 'Authentic' do
 
         # Cache expires and it calls through
         t = Time.now.utc + 60
-        Timecop.travel(t)
-        subject.valid?(token)
-        expect(a_request(:get, test_jwks_url)).to have_been_made.times(2)
+        Timecop.travel(t) do
+          subject.valid?(token)
+          expect(a_request(:get, test_jwks_url)).to have_been_made.times(2)
+        end
       end
 
       it 'returns false when invalid JWT is provided' do
@@ -153,6 +157,12 @@ describe 'Authentic' do
         no_key_file = File.read('./spec/fixtures/no_keys.json')
         stub_request(:get, test_jwks_url).to_return(body: no_key_file)
         expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidKey)
+      end
+
+      it 'raises an error when the current time is older than JWT.exp value' do
+        Timecop.travel(Time.new(2019, 06, 01)) do
+          expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidToken)
+        end
       end
     end
   end

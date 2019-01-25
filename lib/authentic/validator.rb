@@ -43,6 +43,8 @@ module Authentic
         # rather then verify raising an error that would lead to InvalidToken
         raise InvalidKey, 'invalid JWK' if key.nil?
 
+        raise InvalidToken, 'expired JWT' unless Time.at(jwt[:exp]) > Time.now
+
         jwt.verify!(key)
       end
     rescue JSON::JWT::UnexpectedAlgorithm, JSON::JWT::VerificationFailed
