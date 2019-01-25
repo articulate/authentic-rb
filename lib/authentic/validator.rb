@@ -44,6 +44,8 @@ module Authentic
         raise InvalidKey, 'invalid JWK' if key.nil?
 
         jwt.verify!(key)
+
+        verify_claims(jwt)
       end
     rescue JSON::JWT::UnexpectedAlgorithm, JSON::JWT::VerificationFailed
       raise InvalidToken, 'failed to validate token against JWK'
@@ -64,6 +66,12 @@ module Authentic
       end
     rescue JSON::JWT::InvalidFormat
       raise InvalidToken, 'invalid JWT format'
+    end
+
+    private
+
+    def verify_claims(jwt)
+      raise InvalidToken, 'expired JWT' unless Time.at(jwt[:exp]) > Time.now
     end
   end
 end
