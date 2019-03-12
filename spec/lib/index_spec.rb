@@ -41,7 +41,7 @@ describe 'Authentic' do
 
   before { stub_request(:get, test_url).to_return(body: oidc_file) }
   before { stub_request(:get, test_jwks_url).to_return(body: key_file) }
-  before { Timecop.travel(Time.new(2018, 01, 01)) } #token defined above expires on 2018/01/22
+  before { Timecop.travel(Time.new(2018, 01, 01).utc) } #token defined above expires on 2018/01/22
 
   after { Timecop.return }
 
