@@ -43,8 +43,8 @@ module Authentic
         # rather then verify raising an error that would lead to InvalidToken
         raise InvalidKey if key.nil?
 
-        exp = Time.at(jwt[:exp]).utc
-        raise ExpiredToken, "Token expired at #{exp}" unless exp > Time.now.utc
+        exp = Time.at(jwt[:exp])
+        raise ExpiredToken, "Token expired at #{exp}" unless exp > Time.now
 
         jwt.verify!(key)
       end
