@@ -19,4 +19,7 @@ module Authentic
 
   # Public: Represents a bad JWT.
   class InvalidToken < StandardError; end
+
+  # Public: Represents an expired JWT.
+  class ExpiredToken < StandardError; end
 end

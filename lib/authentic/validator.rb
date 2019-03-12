@@ -25,7 +25,7 @@ module Authentic
     def valid?(token)
       ensure_valid(token)
       true
-    rescue InvalidToken, InvalidKey, RequestError
+    rescue InvalidToken, ExpiredToken, InvalidKey, RequestError
       false
     end
 
@@ -43,7 +43,7 @@ module Authentic
         # rather then verify raising an error that would lead to InvalidToken
         raise InvalidKey, 'invalid JWK' if key.nil?
 
-        raise InvalidToken, 'expired JWT' unless Time.at(jwt[:exp]) > Time.now
+        raise ExpiredToken, 'expired JWT' unless Time.at(jwt[:exp]) > Time.now
 
         jwt.verify!(key)
       end
