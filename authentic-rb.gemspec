@@ -13,5 +13,5 @@ Gem::Specification.new do |s|
   s.files       = Dir.glob('lib/**/*')
 
   s.add_runtime_dependency 'json-jwt', '~> 1.9', '>= 1.9.4'
-  s.add_runtime_dependency 'rest-client', '>= 2.0'
+  s.add_runtime_dependency 'rest-client', '~> 2.0'
 end
