@@ -41,7 +41,7 @@ valid = validator.valid?(request.cookies[:token])
 begin
     # returns the decoded JWT
     jwt = validator.ensure_valid(request.cookies[:token])
-rescue InvalidToken, InvalidKey, RequestError => e
+rescue InvalidToken, InvalidKey, RequestError, ExpiredToken
     # do stuff
 end
 ```
