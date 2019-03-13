@@ -74,7 +74,7 @@ describe 'Authentic' do
         expect(a_request(:get, test_jwks_url)).to have_been_made.times(1)
       end
 
-      it 'fetches new JWT when cache expires' do
+      it 'fetches new JWK when cache expires' do
         # hydrates caches
         subject.valid?(token)
 
@@ -161,7 +161,7 @@ describe 'Authentic' do
 
       it 'raises an error when the current time is older than JWT.exp value' do
         Timecop.travel(Time.new(2019, 06, 01)) do
-          expect { subject.ensure_valid(token) }.to raise_error(Authentic::InvalidToken)
+          expect { subject.ensure_valid(token) }.to raise_error(Authentic::ExpiredToken)
         end
       end
     end

@@ -25,7 +25,7 @@ module Authentic
     def valid?(token)
       ensure_valid(token)
       true
-    rescue InvalidToken, InvalidKey, RequestError
+    rescue InvalidToken, ExpiredToken, InvalidKey, RequestError
       false
     end
 
@@ -41,16 +41,17 @@ module Authentic
 
         # Slightly more accurate to raise a key error here for nil key,
         # rather then verify raising an error that would lead to InvalidToken
-        raise InvalidKey, 'invalid JWK' if key.nil?
+        raise InvalidKey if key.nil?
 
-        raise InvalidToken, 'expired JWT' unless Time.at(jwt[:exp]) > Time.now
+        exp = Time.at(jwt[:exp])
+        raise ExpiredToken, "Token expired at #{exp}" unless exp > Time.now
 
         jwt.verify!(key)
       end
     rescue JSON::JWT::UnexpectedAlgorithm, JSON::JWT::VerificationFailed
-      raise InvalidToken, 'failed to validate token against JWK'
+      raise InvalidToken, 'Failed to validate token against JWK'
     rescue OpenSSL::PKey::PKeyError
-      raise InvalidKey, 'invalid JWK'
+      raise InvalidKey
     end
 
     # Decodes and does basic validation of JWT.
@@ -59,13 +60,13 @@ module Authentic
     #
     # Returns JSON::JWT
     def decode_jwt(token)
-      raise InvalidToken, 'invalid nil JWT provided' unless token
+      raise InvalidToken, 'JWT was nil' unless token
 
       JSON::JWT.decode(token, :skip_verification).tap do |jwt|
         raise InvalidToken, 'JWT iss was not located in provided whitelist' unless iss_whitelist.include?(jwt[:iss])
       end
     rescue JSON::JWT::InvalidFormat
-      raise InvalidToken, 'invalid JWT format'
+      raise InvalidToken, 'JWT was in an invalid format'
     end
   end
 end
