@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    authentic-rb (1.6.0)
+    authentic-rb (1.7.0)
       json-jwt (~> 1.9, >= 1.9.4)
       rest-client (~> 2.0)
 
