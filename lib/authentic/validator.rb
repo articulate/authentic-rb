@@ -25,7 +25,7 @@ module Authentic
     def valid?(token)
       ensure_valid(token)
       true
-    rescue InvalidToken, ExpiredToken, InvalidKey, RequestError
+    rescue InvalidToken, ExpiredToken, InvalidKey, RequestError, InvalidIssuer
       false
     end
 
@@ -63,7 +63,7 @@ module Authentic
       raise InvalidToken, 'JWT was nil' unless token
 
       JSON::JWT.decode(token, :skip_verification).tap do |jwt|
-        raise InvalidToken, 'JWT iss was not located in provided whitelist' unless iss_whitelist.include?(jwt[:iss])
+        raise InvalidIssuer, 'JWT iss was not located in provided whitelist' unless iss_whitelist.include?(jwt[:iss])
       end
     rescue JSON::JWT::InvalidFormat
       raise InvalidToken, 'JWT was in an invalid format'

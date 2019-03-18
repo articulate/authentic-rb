@@ -130,7 +130,7 @@ describe 'Authentic' do
       end
 
       it 'raises error when invalid iss is provided' do
-        expect { subject.ensure_valid(bad_iss) }.to raise_error(Authentic::InvalidToken)
+        expect { subject.ensure_valid(bad_iss) }.to raise_error(Authentic::InvalidIssuer)
       end
 
       it 'raises error when token is invalid' do

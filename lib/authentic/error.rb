@@ -22,4 +22,7 @@ module Authentic
 
   # Public: Represents an expired JWT.
   class ExpiredToken < StandardError; end
+
+  # Public: Represents an issuer that is not whitelisted. This should produce a 403 response.
+  class InvalidIssuer < StandardError; end
 end
