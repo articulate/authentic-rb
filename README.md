@@ -46,6 +46,10 @@ rescue InvalidToken, InvalidKey, RequestError, ExpiredToken, InvalidIssuer
 end
 ```
 
+# Response Status Codes
+
+According to the OAuth spec invalid or expired tokens should produce a 401 response and insufficient access (either via scope or aud/iss claim) should produce a 403. This means that all errors except `InvalidIssuer` should produce a 401 status code, and an invalid issuer should produce a 403.
+
 ## Options
 
 Instantiate `Authentic::Validator` with an options hash, which must contain an `iss_whitelist` array listing the `token.payload.iss` values you will accept. For example:
